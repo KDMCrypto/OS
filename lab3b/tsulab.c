@@ -14,22 +14,11 @@
 static struct proc_dir_entry *proc_file; 
 
 // Функция для начала отсчета времени 12.04.1961 06:21 UTC
-static long gagarin_launch_timestamp(void)
+static time64_t gagarin_launch_timestamp(void)
 {
-    struct tm t; // труктура для хранения календарного времени
     time64_t timestamp;
-
-    memset(&t, 0, sizeof(t));
-    t.tm_year = 61; // год
-    t.tm_mon  = 3; // месяц
-    t.tm_mday = 12; // число
-    t.tm_hour = 6; // часы
-    t.tm_min  = 21; // минуты
-    t.tm_sec  = 0; // секунды
-
     // время выхода на орбиту
-    timestamp = mktime64(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
-                         t.tm_hour, t.tm_min, t.tm_sec); 
+    timestamp = mktime64(1961, 4, 12, 6, 21, 0); 
 
     return timestamp;
 }
@@ -38,16 +27,16 @@ static long gagarin_launch_timestamp(void)
 static ssize_t procfile_read(struct file *file_pointer, char __user *buffer, size_t buffer_length, loff_t *offset) {
     char msg[128];
     int len;
-    long now = ktime_get_real_seconds(); // текущее время в секундах
-    long o_timestamp = gagarin_launch_timestamp(); // время выхода Гагарина на орбиту
-    long diff = now - o_timestamp; // разница времени
+    time64_t now = ktime_get_real_seconds(); // текущее время в секундах
+    time64_t o_timestamp = gagarin_launch_timestamp(); // время выхода Гагарина на орбиту
+    time64_t diff = now - o_timestamp; // разница времени
 
-    long revolutions = diff / ORBIT_PERIOD_SEC; // число оборотов
+    time64_t revolutions = diff / ORBIT_PERIOD_SEC; // счило оборотов
 
     if (*offset > 0)
         return 0;
 
-    len = snprintf(msg, sizeof(msg), "Gagarin would have completed %ld orbits by now.\n", revolutions);
+    len = snprintf(msg, sizeof(msg), "Gagarin would have completed %lld orbits by now.\n", revolutions);
 
     if (copy_to_user(buffer, msg, len)) 
         return -EFAULT;
